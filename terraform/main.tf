@@ -55,7 +55,6 @@ module "aks" {
   node_vm_size = var.node_vm_size
 
   node_subnet_id = module.network.node_subnet_id
-  pod_subnet_id  = module.network.pod_subnet_id
 }
 
 module "acr" {
