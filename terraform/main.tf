@@ -27,6 +27,22 @@ provider "azurerm" {
 #  spobject_id                 = var.spobject_id
 #}
 
+module "network" {
+  source = "./modules/network"
+
+  resource_group_name = var.resource_group_name
+  location            = var.location
+
+  vnet_name = "aks-vnet"
+  vnet_cidr = "10.20.0.0/16"
+
+  node_subnet_name  = "aks-nodes"
+  node_subnet_cidr  = "10.20.1.0/24"
+
+  pod_subnet_name   = "aks-pods"
+  pod_subnet_cidr   = "10.20.2.0/23"
+}
+
 module "aks" {
   source = "./modules/aks"
 
@@ -35,8 +51,11 @@ module "aks" {
   location            = var.location
   dns_prefix          = "demoaks"
 
-  node_count = var.node_count      
+  node_count   = var.node_count
   node_vm_size = var.node_vm_size
+
+  node_subnet_id = module.network.node_subnet_id
+  pod_subnet_id  = module.network.pod_subnet_id
 }
 
 module "acr" {

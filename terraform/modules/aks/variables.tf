@@ -23,3 +23,8 @@ variable "node_vm_size" {
 variable "dns_prefix" {
   type = string
 }
+
+variable "node_subnet_id" {
+  type = string
+}
+
