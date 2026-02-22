@@ -1,0 +1,87 @@
+# Build Docker image, push to ACR, then deploy to AKS via Helm
+
+trigger: none
+
+resources:
+- repo: self
+
+variables:
+  # Container registry service connection established during pipeline creation
+  dockerRegistryServiceConnection: 'eb9e3863-7a4a-4a07-ad1b-f0686ce846a6'
+  imageRepository: 'lgexample654'
+  containerRegistry: 'lgexample654.azurecr.io'
+  dockerfilePath: '**/Dockerfile'
+  tag: '$(Build.BuildId)'
+
+
+  # AKS / Helm
+  aksResourceGroup: 'terraform-prod'
+  aksClusterName: 'demo-aks'
+  helmReleaseName: 'lgexample'
+  helmChartPath: 'helm/app'
+
+  # Agent
+  vmImageName: 'ubuntu-latest'
+
+stages:
+- stage: Build
+  displayName: Build and push stage
+  jobs:
+  - job: Build
+    displayName: Build
+    pool:
+      vmImage: $(vmImageName)
+    steps:
+    - task: Docker@2
+      displayName: Build and push an image to container registry
+      inputs:
+        command: buildAndPush
+        repository: $(imageRepository)
+        dockerfile: $(dockerfilePath)
+        containerRegistry: $(dockerRegistryServiceConnection)
+        tags: |
+          $(tag)
+
+# ============================
+# DEPLOY STAGE
+# ============================
+- stage: DeployToAKS
+  displayName: Deploy Helm to AKS
+  dependsOn: Build
+  jobs:
+  - job: HelmDeploy
+    displayName: Helm deploy
+    pool:
+      vmImage: $(vmImageName)
+    steps:
+    - checkout: self
+
+    - task: AzureCLI@2
+      displayName: Deploy Helm Chart to AKS
+      inputs:
+        azureSubscription: 'Azure subscription 1(1)(525c7c1f-f5e9-4bf4-8d7a-5b7a06889a12)'
+        scriptType: 'bash'
+        scriptLocation: 'inlineScript'
+        inlineScript: |
+          az aks get-credentials --resource-group $(aksResourceGroup) --name $(aksClusterName)
+          
+          if [ "$(Build.SourceBranchName)" = "dev" ]; then
+            VALUES_FILE="$(helmChartPath)/values-dev.yaml"
+          elif [ "$(Build.SourceBranchName)" = "stage" ]; then
+            VALUES_FILE="$(helmChartPath)/values-stage.yaml"
+          elif [ "$(Build.SourceBranchName)" = "main" ]; then
+            VALUES_FILE="$(helmChartPath)/values-prod.yaml"
+          else
+            echo "No environment mapping for branch $(Build.SourceBranchName)"
+            exit 1
+          fi
+          
+          echo "Using values file: $VALUES_FILE"
+          
+          helm upgrade --install $(helmReleaseName) $(helmChartPath) \
+            -f $VALUES_FILE \
+            --set image.tag=$(Build.BuildId) \
+            --wait
+          
+          kubectl rollout status deployment/$(helmReleaseName)
+

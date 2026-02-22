@@ -1,0 +1,10 @@
+image:
+  repository: example654.azurecr.io/myapp
+  tag: "1.0"
+  pullPolicy: IfNotPresent
+
+replicaCount: 2
+
+service:
+  type: LoadBalancer
+  port: 80

@@ -1,0 +1,104 @@
+@page
+@model RoleModel
+@{
+    ViewData["Title"] = "Azure Roles";
+}
+
+<section itemid="Intro">
+    <h2>Devops professional projects & focuses</h2>
+    <p>I am working on various Devops projects at the moment. Please see below a few examples of projects that I have been focussing on professionally</p>
+    <p>As an administrator of two Azure tenants with very different goals and purposes, the projects I work on can be very varied</p>
+</section>
+
+<section id="AZRBAC">
+    <h2>Azure IAM & RBAC</h2>
+    <p>My day to day includes the administration of three different Azure tenants; two of these are work related and consist of a Production, Stage, QA and UAT environment for websites and supporting workloads, such as SQL, Automation Accounts, Front Door and Monitor. The third tenant is my own personal tenant, which hosts this site as a showcase and has various services created in Storage Accounts, Automation Accounts and VMs.
+    </p>
+    <p>
+    I administer all of these tenants as one of the primary Global Administrators, and central to this responsiblity is the practise of always following best practise. This includes following the principle of least privilege.</p>
+    <p>When I inherited responsibility for both of the Azure tenants, I set out to establish and enforce best practise in all areas, especially during the assignment of IAM permissions. This was an essential task as experience varied between services and I also carefully needed to control the provisioning of services to ensure careful scaling, and to work within budget limitations</p>
+    </section>
+    <section>
+    <h3 style="font-size: 18px;">Users</h3>
+    <p>It is imperative for a user to be given <b>only</b> the access that they require in order to adhere to the privilege of least privilege. This means, for example, a user who needs write access to a Storage Container only requires the <b>Storage Blob Data Contributor</b> at the Container level (not at the Storage Account level!) and only Contributor access is required, not Storage Blob Data Owner. It is important to note, however, that if a user needs to access a Sotrage Container through the Azure Storage Explorer, <b>Reader</b> access is required.</p>
+    <h3 style="font-size: 18px;">Service Principals</h3>
+    <p>I have been using Service Principals to deploy code to App Service using both Azure Devops and Bitbucket, plus a range of Automation runbooks. Adhering to the principal of least privilege means providing Contributor access to these Service Principals, separately at the relevant Resource Group level.</p>
+    <h3 style="font-size: 18px;">Managed Identities</h3>
+    <p>The use of a Managed Identity is to tie Azure resources together, which of course is in contrast to a Service Principal which is useful for allowing external services to access Azure resources, such as to deploy code.</p>
+    <p>I have been using Managed Identities recently to facilitate the back up of SQL databases. This is done through the use of an Automation account, which also provisions the Managed Identity. The Runbook, containing a Powershell script, uses the permissions that are assigned to the Managed Identity to access resources, in this case SQL Server and Storage Containers.</p>
+    <p>It is important to note that permissions for a Managed Identity need to be assigned through IAM. This means separately for Storage Containers and SQL Server</p>
+    
+    <img src="/images/ManagedIdentity1.png" alt="Managed Identity" width="800" height="100" />
+    <div style="height: 20px;"></div>
+    <h3 style="font-size: 18px;">Microsoft Entra</h3>
+    <p></p>
+    </section>
+    <div style="height: 30px;"></div>
+    <section itemid="Bicep">
+    <h2>Bicep & ARM</h2>
+    <p>I use Bicep to run blue/green deployments, which involved provisioning a new "blue" or "green" environment using Bicep, integrated with an Azure Devops pipeline. As part of the process and once infrastructure had been deployed, a DNS switch was needed for production to ensure the live site was pointing to the new release.</p>
+    <p>Once complete and verified and a few days later, the old stack could be torn down.</p>
+    </section>
+    <section itemid="Azure Devops and Bitbucket">
+    <h2>Azure Devops & Bitbucket</h2>
+    <p>As part of my current role, I am responsible for day-to-day administration of both the Azure Devops and Bitbucket environments, which includes administration of pipelines, repositories and the development of YAML files that support each pipeline. The site that is being released has an effect on the environment used and both Azure Boards and Jira are used for ticketing.</p>
+    <p>Additionally, I am responsible for the following:</p>
+    <ul>
+    <li>Pipeline configuration changes</li>
+    <li>Build updates</li>
+    <li>Deployment logic - both blue/green and App Service deployment slots are currently in use</li>
+    <li>Pull requests</li>
+    <li>Management of Secrets (more information below)</li>
+    </ul>
+    </section>
+    <section itemid="Security & Secrets">
+    <h2>Security & Secrets</h2>
+    <p>I have always kept all Secrets stored in Azure key vault. This includes secrets that support both Azure Devops and Bitbucket, in complete adherence to best practise. Secrets are then stored as variables to be used during deployment.</p>
+    <ul>
+    <li>I provide each environment a Key Vault to ensure separation between QA, UAT, Stage, Production</li>
+    <li>Key Vault Secrets are used to store sensitive data</li>
+    <li>I use the Certificate section of secrets to upload for each domain (12 month renewal process of course!), though especially with App Service I now favour applying App Service Managed certificates when possible for each domain</li>
+    </ul>
+    <div style="text-align: center;">
+    <img src="/images/pipelinedeploy.gif" alt="azdeploy" width="250" height="350" />
+    </div>
+    </section>
+    <section itemid="Monitoring">
+    <h2>Monitoring & Logging</h2>
+    <p>I have always found Azure Monitor to be a <b>hugely</b> beneficial and useful area on Azure to monitor infrastructure and applications - I find it's uses and capabilities quite unmatched when compared to other vendors. Colleagues who work in other infrastructure areas often take extended periods to attempt to diagnose infrastructure/application issues, whereas working with Azure Monitor and especially Application Insights, I find it much easier to diagnose and visualise issues efficiently before troubleshooting</p>
+    <ul>
+    <li>I configure Availability tests for each domain within an App Service which helps to monitor both the uptime of a domain, plus overall Availablity of the App Service</li>
+    <li>With Application Insights I have also found diagnosing spikes much easier than other cloud providers</li>
+    </ul>
+    <p>Logging is an area that I find compliments the Monitoring section of Azure very well. It is essential to ensure historic logs can be queried:</p>
+    <ul>
+    <li>I ensure each resource is linked to a Log Analytics Workspace</li>
+    <li>I am proficient at running KQL queries to provide historic logs, for example to show application errors over a given period</li>
+    </ul>
+    </section>
+    <section itemid="Git">
+    <h2>Use of Git</h2>
+    <p>I have so much fun using Git! Though it is extremenly important to understand the power of Git and the effect of commands. With this in mind, it is essential to ensure best practise is always followed, which includes never committing directly to the main/master branch!</p>
+    <p>Some example commands that I use regularly:</p>
+    <ul>
+    <li>Git clone</li>
+    <li>Git pull</li>
+    <li>Git checkout Feature/****</li>
+    <li>Git tag</li>
+    <li>Git add</li>
+    <li>Git commit</li>
+    <li>Git push</li>
+    </ul>
+
+    <img src="/images/git-commit.gif" alt="git-gif" width="1200" height="250" />
+
+    <div style="height: 10px;"></div>
+    <p>Once a commit has been made to a feature branch or develop branch for example, a pull request is always required to merge to stage. From that point I would either merge further to main/master, or, if deploying to App Service, I would swap the slots to release changes that have been deployed to the stage slot, to production. This is an areas that I find App Service really excels, with the ability to swap slots to deploy to production, but also to swap slots back again quickly and efficiently.</p>
+    </section>
+    <section itemid="scripting">
+    <h2>Scripting / Automation</h2>
+    <p>I use Azure automation with Powershell Runbooks to reduce manual overhead and enforce consistency across the various environment and Services that I work with.</p>
+    <ul>
+    <li><b>Scheduled tasks:</b> Run Powershell scripts overnight to backup Azure SQL Databases to Storage Accounts as .bacpac files</li>
+    <li><b>Tagging governance:</b> Automatically tag new resources with cost centre data</li>
+    </section>

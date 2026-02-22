@@ -1,0 +1,36 @@
+# Git files
+.git/
+.gitignore
+
+# Docker files
+Dockerfile
+docker-compose*.yml
+
+# Local build artifacts
+bin/
+obj/
+*.dll
+*.pdb
+*.exe
+*.log
+
+# VS / IDE files
+.vscode/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Documentation
+README.md
+*.md
+
+# Terraform / pipeline files (optional)
+terraform/
+*.tfstate
+*.tfstate.backup
+
+# Node / package manager files (if any)
+node_modules/
+package-lock.json
+yarn.lock

@@ -1,0 +1,89 @@
+# Build Docker image, push to ACR, then deploy to AKS via Helm
+
+trigger: none
+
+resources:
+- repo: self
+
+variables:
+  # Container registry service connection established during pipeline creation
+  dockerRegistryServiceConnection: '5bb541f2-183b-4485-ad74-76afc03489d9'
+  imageRepository: 'lgexample654'
+  containerRegistry: 'lgexample654.azurecr.io'
+  dockerfilePath: '**/Dockerfile'
+  tag: '$(Build.BuildId)'
+
+
+  # AKS / Helm
+  aksResourceGroup: 'terraform'
+  aksClusterName: 'demo-aks'
+  helmReleaseName: 'lgexample'
+  helmChartPath: 'helm/app'
+
+  # Agent
+  vmImageName: 'ubuntu-latest'
+
+stages:
+- stage: Build
+  displayName: Build and push stage
+  jobs:
+  - job: Build
+    displayName: Build
+    pool:
+      vmImage: $(vmImageName)
+    steps:
+    - task: Docker@2
+      displayName: Build and push an image to container registry
+      inputs:
+        command: buildAndPush
+        repository: $(imageRepository)
+        dockerfile: $(dockerfilePath)
+        containerRegistry: $(dockerRegistryServiceConnection)
+        tags: |
+          $(tag)
+
+- stage: DeployToAKS
+  displayName: Deploy Helm to AKS
+  dependsOn: Build
+  jobs:
+  - job: HelmDeploy
+    displayName: Helm deploy
+    pool:
+      vmImage: $(vmImageName)
+    steps:
+    - checkout: self
+
+    # 1. FIRST: Determine which file to use
+    - bash: |
+        if [ "$(Build.SourceBranchName)" = "dev" ]; then
+          echo "##vso[task.setvariable variable=ValuesFilePath]$(Build.SourcesDirectory)/$(helmChartPath)/values-dev.yaml"
+        elif [ "$(Build.SourceBranchName)" = "qa" ]; then
+          echo "##vso[task.setvariable variable=ValuesFilePath]$(Build.SourcesDirectory)/$(helmChartPath)/values-qa.yaml"
+        elif [ "$(Build.SourceBranchName)" = "stage" ]; then
+          echo "##vso[task.setvariable variable=ValuesFilePath]$(Build.SourcesDirectory)/$(helmChartPath)/values-stage.yaml"
+        elif [ "$(Build.SourceBranchName)" = "main" ]; then
+          echo "##vso[task.setvariable variable=ValuesFilePath]$(Build.SourcesDirectory)/$(helmChartPath)/values-prod.yaml"
+        else
+          echo "No environment mapping for branch $(Build.SourceBranchName)"
+          exit 1
+        fi
+      displayName: 'Determine Values File'
+
+    # 2. SECOND: Run the deployment
+    - task: HelmDeploy@0
+      displayName: 'Deploy Helm Chart'
+      inputs:
+        connectionType: 'Azure Resource Manager'
+        azureSubscription: 'Azure subscription 1(3)(525c7c1f-f5e9-4bf4-8d7a-5b7a06889a12)'
+        azureResourceGroup: '$(aksResourceGroup)'
+        kubernetesCluster: '$(aksClusterName)'
+        command: 'upgrade'
+        chartType: 'FilePath'
+        chartPath: '$(helmChartPath)'
+        releaseName: '$(helmReleaseName)'
+        install: true
+        waitForExecution: true
+        valueFile: '$(ValuesFilePath)'
+        # ADDED image.repository BELOW
+        overrideValues: 'image.repository=$(containerRegistry)/$(imageRepository),image.tag=$(Build.BuildId)'
+        arguments: '--atomic --timeout 5m0s'

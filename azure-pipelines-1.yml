@@ -1,0 +1,57 @@
+trigger:
+- main
+
+variables:
+  aksResourceGroup: "myRG"
+  aksClusterName: "myaks"
+  acrName: "dockerluke"
+  imageName: "myapp"
+  helmReleaseName: "myapp"
+  helmChartPath: "helm/app"
+
+stages:
+- stage: BuildAndPush
+  displayName: Build and Push Docker Image
+  jobs:
+  - job: Docker
+    pool:
+      vmImage: 'ubuntu-latest'
+    steps:
+    - task: AzureCLI@2
+      inputs:
+        azureSubscription: 'Azure subscription 1(525c7c1f-f5e9-4bf4-8d7a-5b7a06889a12)'
+        scriptType: 'bash'
+        scriptLocation: 'inlineScript'
+        inlineScript: |
+          # Login to ACR
+          az acr login --name $(acrName)
+          # Build and push image
+          docker build -t $(acrName).azurecr.io/$(imageName):$(Build.BuildId) .
+          docker push $(acrName).azurecr.io/$(imageName):$(Build.BuildId)
+      displayName: 'Build and push Docker image'
+
+- stage: DeployToAKS
+  displayName: Deploy Helm to AKS
+  dependsOn: BuildAndPush
+  jobs:
+  - job: HelmDeploy
+    pool:
+      vmImage: 'ubuntu-latest'
+    steps:
+    - task: AzureCLI@2
+      inputs:
+        azureSubscription: 'Azure subscription 1(1)(525c7c1f-f5e9-4bf4-8d7a-5b7a06889a12)'
+        scriptType: 'bash'
+        scriptLocation: 'inlineScript'
+        inlineScript: |
+          # Get AKS credentials
+          az aks get-credentials --resource-group $(aksResourceGroup) --name $(aksClusterName)
+          
+          # Update image tag in Helm values
+          helm upgrade --install $(helmReleaseName) $(helmChartPath) \
+            --set image.tag=$(Build.BuildId) \
+            --wait
+          
+          # Wait for all pods to be ready
+          kubectl rollout status deployment/$(helmReleaseName)
+      displayName: 'Deploy Helm Chart to AKS'

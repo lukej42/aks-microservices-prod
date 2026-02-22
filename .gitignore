@@ -1,0 +1,49 @@
+terraform/.terraform/modules/modules.json
+terraform/.terraform/terraform.tfstate
+terraform/.terraform/providers/registry.terraform.io/hashicorp/azurerm/4.57.0/windows_amd64/LICENSE.txt
+terraform/.terraform/providers/registry.terraform.io/hashicorp/azurerm/4.57.0/windows_amd64/terraform-provider-azurerm_v4.57.0_x5.exe
+
+# Build results
+bin/
+obj/
+*.dll
+*.exe
+*.pdb
+*.cache
+*.log
+
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.backup
+crash.log
+
+# User-specific files
+*.user
+*.userosscache
+*.suo
+*.vscode/
+*.idea/
+
+# NuGet packages
+*.nupkg
+packages/
+.nuget/
+
+# Docker images / build artifacts
+docker-compose.override.yml
+docker-compose.override.*.yml
+**/Dockerfile.*.backup
+
+# Intermediate containers / images (optional, usually local only)
+*.tar
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
