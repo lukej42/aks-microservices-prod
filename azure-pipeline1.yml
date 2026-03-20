@@ -10,7 +10,7 @@ parameters:
   values: [dev, qa, stage, prod]
 
 variables:
-  dockerRegistryServiceConnection: '1e214d95-3dc5-4da8-b108-173e64a637f7'
+  dockerRegistryServiceConnection: '7012d6dc-cd56-488f-ad12-8e8eef24b07d'
   imageRepository: 'lgexample654'
   containerRegistry: 'lgexample654.azurecr.io'
   tag: '$(Build.BuildId)'
